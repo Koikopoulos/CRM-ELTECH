@@ -1,0 +1,47 @@
+@import "tailwindcss";
+@import "@fontsource-variable/figtree";
+
+/* Paleta derivada do logotipo Eltech: azul-marinho da marca + azuis claros e suaves */
+@theme {
+  --font-sans: "Figtree Variable", ui-sans-serif, system-ui, sans-serif;
+
+  --color-marinho: #203167;      /* azul do logotipo: títulos e marca */
+  --color-azul: #2d6bc4;         /* ações principais */
+  --color-azul-escuro: #1f56a6;  /* hover das ações */
+  --color-ciano: #3fa9e0;        /* destaque secundário (átomo do logo) */
+  --color-ceu: #e8f1fb;          /* item ativo, realces suaves */
+  --color-nevoa: #f4f8fd;        /* fundo das páginas */
+  --color-linha: #dce6f2;        /* bordas e divisórias */
+  --color-tinta: #1a2540;        /* texto principal */
+  --color-apagado: #5d6b85;      /* texto secundário */
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-nevoa);
+  color: var(--color-tinta);
+  font-family: var(--font-sans);
+  font-feature-settings: "tnum" 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-azul);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
