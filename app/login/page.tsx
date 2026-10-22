@@ -19,13 +19,13 @@ export default function PaginaLogin() {
             O CRM comercial da Eltech: acompanhe cada proposta do primeiro contato ao fechamento.
           </p>
         </div>
-        <p className="relative text-sm text-apagado">A química certa para a construção</p>
+        <p className="relative text-sm text-apagado">A química certa para sua construção</p>
       </section>
 
       <section className="flex items-center justify-center bg-white px-4 py-12 sm:px-8">
         <div className="w-full max-w-sm">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/eltech-logo.png" alt="Eltech Química" width={196} height={64} className="mb-10 h-14 w-auto" />
+          <img src="/eltech-logo.png" alt="Eltech Química" width={480} height={457} className="mb-8 h-28 w-auto" />
           <h2 className="text-2xl font-semibold text-marinho">Entrar no CRM</h2>
           <p className="mt-1.5 text-[15px] text-apagado">Use o e-mail cadastrado pela Eltech.</p>
           <Suspense>
