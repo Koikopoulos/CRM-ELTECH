@@ -1,32 +1,34 @@
-import { redirect } from "next/navigation";
+import { ShieldAlert } from "lucide-react";
 import { Shell } from "@/components/Shell";
-import { createClient } from "@/lib/supabase/server";
-import { devBypass } from "@/lib/supabase/env";
-import { PERFIS } from "@/lib/dominio";
+import { obterSessao } from "@/lib/sessao";
+import { nomePerfil } from "@/lib/dominio";
 
 export default async function LayoutCRM({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, usuario } = await obterSessao();
 
-  if (!user && !devBypass) redirect("/login");
-
-  const email = user?.email ?? "visualizacao@eltech.local";
-  let nome = user ? email.split("@")[0].replace(/[._]/g, " ") : "Modo de visualização";
-  let perfil = user ? "Sem perfil cadastrado" : "Somente desenvolvimento";
-
-  if (user) {
-    const { data } = await supabase
-      .from("usuarios")
-      .select("nome, perfil")
-      .eq("auth_id", user.id)
-      .maybeSingle();
-    if (data) {
-      nome = data.nome;
-      perfil = PERFIS.find((p) => p.id === data.perfil)?.nome ?? data.perfil;
-    }
+  if (!usuario) {
+    return (
+      <main className="grid min-h-dvh place-items-center bg-nevoa px-4">
+        <div className="max-w-md rounded-xl border border-linha bg-white p-8 text-center">
+          <ShieldAlert className="mx-auto size-8 text-azul" />
+          <h1 className="mt-4 text-lg font-semibold text-marinho">Seu acesso ainda não foi liberado</h1>
+          <p className="mt-2 text-[15px] leading-relaxed text-apagado">
+            O login {user.email} não está ligado a um usuário ativo do CRM. Peça à Diretoria ou ao Admin para cadastrar
+            este e-mail.
+          </p>
+          <form action="/auth/sair" method="post" className="mt-6">
+            <button className="h-10 rounded-lg border border-linha px-4 text-sm font-medium text-marinho hover:bg-nevoa">
+              Sair
+            </button>
+          </form>
+        </div>
+      </main>
+    );
   }
 
-  return <Shell usuario={{ nome, email, perfil }}>{children}</Shell>;
+  return (
+    <Shell usuario={{ nome: usuario.nome, email: usuario.email ?? "", perfil: nomePerfil(usuario.perfil) }}>
+      {children}
+    </Shell>
+  );
 }

@@ -228,14 +228,16 @@ export function Shell({ usuario, children }: { usuario: Usuario; children: React
             <span className="sr-only">{compacto ? "Expandir menu" : "Recolher menu"}</span>
           </button>
           <h1 className="truncate text-lg font-semibold text-marinho">{tituloDaRota(path)}</h1>
-          <div className="ml-auto hidden w-full max-w-xs items-center gap-2 rounded-lg border border-linha bg-nevoa px-3 md:flex">
+          <form action="/contatos" role="search" className="ml-auto hidden w-full max-w-xs items-center gap-2 rounded-lg border border-linha bg-nevoa px-3 md:flex">
             <Search className="size-4 text-apagado" />
             <input
               type="search"
-              placeholder="Buscar cliente, CNPJ ou proposta"
+              name="q"
+              aria-label="Buscar cliente"
+              placeholder="Buscar cliente, CNPJ ou cidade"
               className="h-9 w-full bg-transparent text-sm outline-none placeholder:text-apagado/70"
             />
-          </div>
+          </form>
         </header>
         <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
       </div>

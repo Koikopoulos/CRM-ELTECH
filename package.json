@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test:banco": "node supabase/testes/permissoes.mjs supabase/migrations/20261022190000_estrutura_inicial.sql"
+    "test:banco": "node supabase/testes/permissoes.mjs supabase/migrations"
   },
   "dependencies": {
     "@fontsource-variable/figtree": "5.3.0",

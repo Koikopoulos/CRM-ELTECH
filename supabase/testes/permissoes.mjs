@@ -1,7 +1,10 @@
 import { PGlite } from "@electric-sql/pglite";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 
-const migration = readFileSync(process.argv[2], "utf8");
+const alvo = process.argv[2];
+const migracoes = statSync(alvo).isDirectory()
+  ? readdirSync(alvo).filter((f) => f.endsWith(".sql")).sort().map((f) => `${alvo}/${f}`)
+  : [alvo];
 const db = new PGlite();
 
 // --- Emula o ambiente do Supabase (schema auth, auth.uid(), papéis) ---
@@ -17,7 +20,7 @@ await db.exec(`
   grant usage on schema public to anon, authenticated;
 `);
 
-await db.exec(migration);
+for (const m of migracoes) await db.exec(readFileSync(m, "utf8"));
 console.log("✓ Migração aplicada sem erros");
 
 let falhas = 0;
@@ -198,6 +201,43 @@ r = await como("op1", `update public.usuarios set perfil = 'diretoria' where nom
 ok(r.affectedRows === 0, "Usuário NÃO muda o próprio perfil");
 e = await erro("op1", `insert into public.historico_estagios (proposta_id, para) values (1, 'enviado')`);
 ok(e !== null, "Ninguém grava histórico à mão");
+
+// --- Custo e margem dos produtos (só Diretoria e Admin) ---
+console.log("\nCusto e margem dos produtos");
+await db.exec(`update public.produtos set custo = 10, mi_objetivo = 85`);
+e = await erro("op1", `select custo from public.produtos`);
+ok(e !== null, "Operacional NÃO lê o custo direto da tabela");
+e = await erro("coord", `select nome, preco from public.produtos`);
+ok(e === null, "Coordenação consulta nome e preço");
+r = await como("coord", `select * from public.produtos_custos()`);
+ok(r.rows.length === 0, "Coordenação NÃO recebe custo/margem pela função");
+r = await como("adm", `select * from public.produtos_custos()`);
+ok(r.rows.length === 1 && +r.rows[0].custo === 10, "Admin recebe custo e margem");
+r = await como("dir", `select * from public.produtos_custos()`);
+ok(r.rows.length === 1, "Diretoria recebe custo e margem");
+
+// --- Resumo do pipeline respeita o perfil ---
+console.log("\nResumo do pipeline");
+const soma = async (k) => (await como(k, `select coalesce(sum(quantidade),0)::int q from public.resumo_pipeline()`)).rows[0].q;
+const sDir = await soma("dir"), sOp = await soma("op1"), sTot = (await db.query(`select count(*)::int c from public.propostas`)).rows[0].c;
+ok(sDir === sTot, `Diretoria: resumo soma todas as propostas (${sDir})`);
+ok(sOp === (await contar("op1", "propostas")), `Operacional: resumo soma só as dele (${sOp})`);
+e = await erro("anon", `select * from public.resumo_pipeline()`);
+ok(e !== null, "Visitante sem login não usa o resumo");
+
+// --- Proteção de perfis e código automático ---
+console.log("\nPerfis e código automático");
+e = await erro("adm", `update public.usuarios set perfil = 'diretoria' where nome = 'ADM'`);
+ok(e !== null, "Admin NÃO altera o próprio perfil → " + e);
+e = await erro("adm", `update public.usuarios set perfil = 'diretoria' where nome = 'OP2'`);
+ok(e?.includes("Somente a Diretoria"), "Admin NÃO promove ninguém a Diretoria → " + e);
+e = await erro("adm", `update public.usuarios set perfil = 'conferente' where nome = 'OP2'`);
+ok(e === null, "Admin altera perfil de outro usuário (Operacional → Conferente)");
+e = await erro("dir", `update public.usuarios set perfil = 'diretoria' where nome = 'OP2'`);
+ok(e === null, "Diretoria concede perfil Diretoria");
+await como("op1", `insert into public.propostas (representante_id) values ('${ids.op1}')`);
+r = (await db.query(`select codigo from public.propostas order by id desc limit 1`)).rows[0];
+ok(/^020000_\d{4}$/.test(r.codigo), `Proposta nova recebe código automático (${r.codigo})`);
 
 console.log(falhas ? `\n${falhas} teste(s) falharam` : "\nTodos os testes passaram");
 process.exit(falhas ? 1 : 0);

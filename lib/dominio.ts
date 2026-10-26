@@ -10,6 +10,18 @@ export const ESTAGIOS = [
   { id: "reprovado", nome: "Reprovado", cor: "#B4545A" },
 ] as const;
 
+export type EstagioId = (typeof ESTAGIOS)[number]["id"];
+export const ESTAGIOS_ABERTOS: EstagioId[] = ["criacao", "checagem", "validado", "enviado", "amostra_enviada", "amostra_aprovada"];
+export const nomeEstagio = (id: string) => ESTAGIOS.find((e) => e.id === id)?.nome ?? id;
+export const corEstagio = (id: string) => ESTAGIOS.find((e) => e.id === id)?.cor ?? "#8FB3E3";
+
+export const TIPOS_VENDEDOR = [
+  { id: "representante", nome: "Representante" },
+  { id: "vendedor_interno", nome: "Vendedor interno" },
+  { id: "retaguarda", nome: "Retaguarda" },
+] as const;
+export const nomeTipoVendedor = (id: string | null) => TIPOS_VENDEDOR.find((t) => t.id === id)?.nome ?? "—";
+
 export type PerfilId =
   | "diretoria"
   | "admin"
@@ -62,3 +74,5 @@ export const PERFIS: { id: PerfilId; nome: string; resumo: string; fase?: string
     fase: "Fase futura",
   },
 ];
+
+export const nomePerfil = (id: string | null | undefined) => PERFIS.find((p) => p.id === id)?.nome ?? "Sem perfil";
